@@ -1,29 +1,29 @@
 module DayFour
 
-int parseInt(value: string) {
+parseInt(value: string): int {
     var cur = 0;
-    for (var i = 0; i < value.length; i = i + 1) {
+    for (var i = 0; i < value.length; i += 1) {
         if (value[i] < '0' || value[i] > '9') {
             return 0;
         }
 
-        cur = 10 * cur;
-        cur = cur + int(value[i] - '0');
+        cur *= 10;
+        cur += int(value[i] - '0');
     }
 
     return cur;
 }
 
-list<string> split(String s, rune sep) {
+split(s: string, sep: rune): list<string> {
     var result = make(list<string>);
 
     var cur = "";
-    for (var i = 0; i < s.length; i++) {
+    for (var i = 0; i < s.length; i += 1) {
         if (s[i] == sep) {
             result.push(cur);
             cur = "";
         } else {
-            cur = cur + string(s[i]);
+            cur += string(s[i]);
         }
     }
 
@@ -38,16 +38,16 @@ model Section {
     start: int;
     end: int;
 
-    bool contains(other Section) {
+    contains(other: Section): bool {
         return start <= other.start && other.end <= end;
     }
 
-    bool overlaps(other Section) {
-        return s.start <= other.end && other.start <= s.end;
+    overlaps(other: Section): bool {
+        return start <= other.end && other.start <= end;
     }
 }
 
-Section parseSection(str: string) {
+parseSection(str: string): Section {
     var splitStr = split(str, '-');
 
     var section = new Section();
@@ -57,7 +57,7 @@ Section parseSection(str: string) {
     return section;
 }
 
-int partOne(lines: []string) {
+partOne(lines: list<string>): int {
     var count = 0;
 
     for (var line in lines) {
@@ -67,26 +67,26 @@ int partOne(lines: []string) {
         var secondSection = parseSection(splitStr[1]);
 
         if (firstSection.contains(secondSection) || secondSection.contains(firstSection)) {
-            count = count + 1;
+            count += 1;
         }
     }
 
     return count;
 }
 
-int partTwo(lines: []string) {
+partTwo(lines: list<string>): int {
     var count = 0;
 
-        for (var line in lines) {
-            var splitStr = split(line, ',');
+    for (var line in lines) {
+        var splitStr = split(line, ',');
 
-            var firstSection = parseSection(splitStr[0]);
-            var secondSection = parseSection(splitStr[1]);
+        var firstSection = parseSection(splitStr[0]);
+        var secondSection = parseSection(splitStr[1]);
 
-            if (firstSection.overlaps(secondSection) {
-                count = count + 1;
-            }
+        if (firstSection.overlaps(secondSection)) {
+            count += 1;
         }
+    }
 
-        return count;
+    return count;
 }
