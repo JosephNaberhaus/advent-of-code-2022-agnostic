@@ -1,0 +1,63 @@
+module DayOne
+
+parseInt(value: string): int {
+    var cur = 0;
+    for (var i = 0; i < value.length; i += 1) {
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10 * cur;
+        cur += int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+partOne(lines: list<string>): int {
+    var curElf = 0;
+    var maxElf = 0;
+    for (var line in lines) {
+        if (line.length == 0) {
+            if (curElf > maxElf) {
+                maxElf = curElf;
+            }
+
+            curElf = 0;
+        } else {
+            curElf = curElf + parseInt(line);
+        }
+    }
+
+    return maxElf;
+}
+
+partTwo(lines: list<string>): int {
+    var curElf = 0;
+    var maxElves = [0, 0, 0];
+    for (var line in lines) {
+        if (line.length == 0) {
+            if (curElf > maxElves[0]) {
+                maxElves[2] = maxElves[1];
+                maxElves[1] = maxElves[0];
+                maxElves[0] = curElf;
+            } else if (curElf > maxElves[1]) {
+                maxElves[2] = maxElves[1];
+                maxElves[1] = curElf;
+            } else if (curElf > maxElves[2]) {
+                maxElves[2] = curElf;
+            }
+
+            curElf = 0;
+        } else {
+            curElf += parseInt(line);
+        }
+    }
+
+    var sum = 0;
+    for (var elf in maxElves) {
+        sum += elf;
+    }
+
+    return sum;
+}

@@ -1,0 +1,92 @@
+module DayFour
+
+int parseInt(value: string) {
+    var cur = 0;
+    for (var i = 0; i < value.length; i = i + 1) {
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur = 10 * cur;
+        cur = cur + int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+list<string> split(String s, rune sep) {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i++) {
+        if (s[i] == sep) {
+            result.push(cur);
+            cur = "";
+        } else {
+            cur = cur + string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+model Section {
+    start: int;
+    end: int;
+
+    bool contains(other Section) {
+        return start <= other.start && other.end <= end;
+    }
+
+    bool overlaps(other Section) {
+        return s.start <= other.end && other.start <= s.end;
+    }
+}
+
+Section parseSection(str: string) {
+    var splitStr = split(str, '-');
+
+    var section = new Section();
+    section.start = parseInt(splitStr[0]);
+    section.end = parseInt(splitStr[1]);
+
+    return section;
+}
+
+int partOne(lines: []string) {
+    var count = 0;
+
+    for (var line in lines) {
+        var splitStr = split(line, ',');
+
+        var firstSection = parseSection(splitStr[0]);
+        var secondSection = parseSection(splitStr[1]);
+
+        if (firstSection.contains(secondSection) || secondSection.contains(firstSection)) {
+            count = count + 1;
+        }
+    }
+
+    return count;
+}
+
+int partTwo(lines: []string) {
+    var count = 0;
+
+        for (var line in lines) {
+            var splitStr = split(line, ',');
+
+            var firstSection = parseSection(splitStr[0]);
+            var secondSection = parseSection(splitStr[1]);
+
+            if (firstSection.overlaps(secondSection) {
+                count = count + 1;
+            }
+        }
+
+        return count;
+}

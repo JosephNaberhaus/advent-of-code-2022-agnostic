@@ -1,0 +1,76 @@
+module DayTwo
+
+const rock = 1;
+const paper = 2;
+const scissors = 3;
+
+const beats = {
+    rock: scissors,
+    paper: rock,
+    scissors: paper
+};
+
+const losesTo = {
+    rock: paper,
+    paper: scissors,
+    scissors: rock
+};
+
+const theirMoveToMove = {
+    int('A'): rock,
+    int('B'): paper,
+    int('C'): scissors
+};
+
+const myMoveToMove = {
+    int('X'): rock,
+    int('Y'): paper,
+    int('Z'): scissors
+};
+
+getScore(theirMove: int, myMove: int): int {
+    if (beats[myMove] == theirMove) {
+        return 6 + myMove;
+    } else if (beats[theirMove] == myMove) {
+        return myMove;
+    }
+
+    return 3 + myMove;
+}
+
+partOne(lines: list<string>): int {
+    var score = 0;
+    for (var line in lines) {
+        var theirMove = theirMoveToMove[int(line[0])];
+        var myMove = myMoveToMove[int(line[2])];
+
+        score += getScore(theirMove, myMove);
+    }
+
+    return score;
+}
+
+const lose = 'X';
+const draw = 'Y';
+const win = 'Z';
+
+partTwo(lines: list<string>): int {
+    var score = 0;
+    for (var line in lines) {
+        var theirMove = theirMoveToMove[int(line[0])];
+        var myGoal = line[2];
+
+        var myMove = -1;
+        if (myGoal == win) {
+            myMove = losesTo[theirMove];
+        } else if (myGoal == lose) {
+            myMove = beats[theirMove];
+        } else {
+            myMove = theirMove;
+        }
+
+        score += getScore(theirMove, myMove);
+    }
+
+    return score;
+}

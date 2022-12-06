@@ -1,0 +1,81 @@
+module DayThree
+
+toList(set: set<rune>): list<rune> {
+    var list = make(list<rune>);
+    for (var item in set) {
+        list.push(item);
+    }
+
+    return list;
+}
+
+toPriority(item: rune): int {
+    if (item >= 'a') {
+        return int(item - 'a') + 1;
+    }
+
+    return int(item - 'A') + 27;
+}
+
+findDuplicates(lines: list<string>): rune {
+    var common = make(set<rune>);
+    for (var i = 0; i < lines[0].length; i += 1) {
+        common.add(lines[0][i]);
+    }
+
+    for (var i = 1; i < lines.length; i += 1) {
+        var newCommon = make(set<rune>);
+
+        for (var j = 0; j < lines[i].length; j += 1) {
+            if (common.contains(lines[i][j])) {
+                newCommon.add(lines[i][j]);
+            }
+        }
+
+        common = newCommon;
+    }
+
+    return toList(common)[0];
+}
+
+model SplitResult {
+    firstHalf: string;
+    secondHalf: string;
+}
+
+split(line: string): SplitResult {
+    var result = new SplitResult();
+    result.firstHalf = "";
+    result.secondHalf = "";
+
+    for (var i = 0; i < line.length; i += 1) {
+        if (i < line.length / 2) {
+            result.firstHalf = result.firstHalf + string(line[i]);
+        } else {
+            result.secondHalf = result.secondHalf + string(line[i]);
+        }
+    }
+
+    return result;
+}
+
+partOne(lines: list<string>): int {
+    var sum = 0;
+
+    for (var line in lines) {
+        var split = split(line);
+        sum += toPriority(findDuplicates([split.firstHalf, split.secondHalf]));
+    }
+
+    return sum;
+}
+
+partTwo(lines: list<string>): int {
+    var sum = 0;
+
+    for (var i = 0; i < lines.length; i = i + 3) {
+        sum += toPriority(findDuplicates([lines[i], lines[i + 1], lines[i + 2]]));
+    }
+
+    return sum;
+}
