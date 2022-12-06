@@ -111,52 +111,52 @@ partOne(lines: list<string>): string {
 
 partTwo(lines: list<string>): string {
     var stackLines = make(list<string>);
-        var moveLines = make(list<string>);
+    var moveLines = make(list<string>);
 
-        var isParsingMoves = false;
-        for (var line in lines) {
-            if (isParsingMoves) {
-                moveLines.push(line);
+    var isParsingMoves = false;
+    for (var line in lines) {
+        if (isParsingMoves) {
+            moveLines.push(line);
+        } else {
+            if (line.length == 0) {
+                isParsingMoves = true;
             } else {
-                if (line.length == 0) {
-                    isParsingMoves = true;
-                } else {
-                    stackLines.push(line);
-                }
+                stackLines.push(line);
             }
         }
+    }
 
-        var numStacks = (stackLines[stackLines.length - 1].length + 2) / 4;
-        var stacks = make(list<Stack>);
-        for (var i = 0; i < numStacks; i += 1) {
-            var stack = new Stack();
-            stack.crates = make(list<rune>);
-            stacks.push(stack);
-        }
+    var numStacks = (stackLines[stackLines.length - 1].length + 2) / 4;
+    var stacks = make(list<Stack>);
+    for (var i = 0; i < numStacks; i += 1) {
+        var stack = new Stack();
+        stack.crates = make(list<rune>);
+        stacks.push(stack);
+    }
 
-        for (var i = stackLines.length - 2; i >= 0; i -= 1) {
-            var line = stackLines[i];
-            for (var j = 0; j < numStacks; j += 1) {
-                var runeIndex = (j * 4) + 1;
-                if (runeIndex < line.length && line[runeIndex] != ' ') {
-                    stacks[j].push([line[runeIndex]]);
-                }
+    for (var i = stackLines.length - 2; i >= 0; i -= 1) {
+        var line = stackLines[i];
+        for (var j = 0; j < numStacks; j += 1) {
+            var runeIndex = (j * 4) + 1;
+            if (runeIndex < line.length && line[runeIndex] != ' ') {
+                stacks[j].push([line[runeIndex]]);
             }
         }
+    }
 
-        for (var line in moveLines) {
-            var parts = split(line, ' ');
-            var numToMove = parseInt(parts[1]);
-            var from = parseInt(parts[3]);
-            var to = parseInt(parts[5]);
+    for (var line in moveLines) {
+        var parts = split(line, ' ');
+        var numToMove = parseInt(parts[1]);
+        var from = parseInt(parts[3]);
+        var to = parseInt(parts[5]);
 
-            stacks[to - 1].push(stacks[from - 1].pop(numToMove));
-        }
+        stacks[to - 1].push(stacks[from - 1].pop(numToMove));
+    }
 
-        var message = "";
-        for (var stack in stacks) {
-            message += string(stack.pop(1)[0]);
-        }
+    var message = "";
+    for (var stack in stacks) {
+        message += string(stack.pop(1)[0]);
+    }
 
-        return message;
+    return message;
 }
