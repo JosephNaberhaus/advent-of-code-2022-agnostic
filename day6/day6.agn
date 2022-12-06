@@ -1,0 +1,37 @@
+module DaySix
+
+areLastNCharsUnique(str: string, start: int, n: int): bool {
+    var encountered = make(set<rune>);
+    for (var i = start - (n - 1); i <= start; i += 1) {
+        var cur = str[i];
+        if (encountered.contains(cur)) {
+            return false;
+        }
+
+        encountered.add(cur);
+    }
+
+    return true;
+}
+
+partOne(lines: list<string>): int {
+    var line = lines[0];
+    for (var i = 3; i < line.length; i += 1) {
+        if (areLastNCharsUnique(line, i, 4)) {
+            return i + 1;
+        }
+    }
+
+    return -1;
+}
+
+partTwo(lines: list<string>): int {
+    var line = lines[0];
+    for (var i = 13; i < line.length; i += 1) {
+        if (areLastNCharsUnique(line, i, 14)) {
+            return i + 1;
+        }
+    }
+
+    return -1;
+}
