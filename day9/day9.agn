@@ -1,0 +1,163 @@
+module DayNine
+
+parseInt(value: string): int {
+    var cur = 0;
+    for (var i = 0; i < value.length; i += 1) {
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10;
+        cur += int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+split(s: string, sep: rune): list<string> {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i += 1) {
+        if (s[i] == sep) {
+            result.push(cur);
+            cur = "";
+        } else {
+            cur += string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+model Point {
+    x: int;
+    y: int;
+
+    clone(): Point {
+        return Point{
+            x: x,
+            y: y
+        };
+    }
+
+    @==(other) {
+        return other.x == x && other.y == y;
+    }
+
+    @hash() {
+        return hash([
+            hash(x),
+            hash(y)
+        ]);
+    }
+}
+
+model Rope {
+    knots: list<Point>;
+
+    moveHead(dx: int, dy: int): void {
+        var head = knots[0];
+        head.x += dx;
+        head.y += dy;
+
+        for (var i = 1; i < knots.length; i++) {
+            var next = knots[i];
+
+            if (-1 > next.x - head.x || next.x - head.x > 1 || -1 > next.y - head.y || next.y - head.y > 1) {
+                if (next.x > head.x) {
+                    next.x--;
+                } else if (next.x < head.x) {
+                    next.x++;
+                }
+
+                if (next.y > head.y) {
+                    next.y--;
+                } else if (next.y < head.y) {
+                    next.y++;
+                }
+            }
+
+            head = next;
+        }
+    }
+
+    tail(): Point {
+        return knots[knots.length - 1];
+    }
+}
+
+partOne(lines: list<string>): int {
+    var visitedPoints = make(set<Point>);
+
+    var rope = Rope{
+        knots: [
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0}
+        ]
+    };
+    for (var line in lines) {
+        var direction = line[0];
+        var count = parseInt(split(line, ' ')[1]);
+
+        for (var i = 0; i < count; i++) {
+            if (direction == 'R') {
+                rope.moveHead(1, 0);
+            } else if (direction == 'L') {
+                rope.moveHead(-1, 0);
+            } else if (direction == 'U') {
+                rope.moveHead(0, 1);
+            } else {
+                rope.moveHead(0, -1);
+            }
+
+            visitedPoints.add(rope.tail().clone());
+        }
+    }
+
+    return visitedPoints.length;
+}
+
+partTwo(lines: list<string>): int {
+    var visitedPoints = make(set<Point>);
+
+    var rope = Rope{
+        knots: [
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0},
+            Point{x: 0, y: 0}
+        ]
+    };
+    for (var line in lines) {
+        var direction = line[0];
+        var count = parseInt(split(line, ' ')[1]);
+
+        for (var i = 0; i < count; i++) {
+            if (direction == 'R') {
+                rope.moveHead(1, 0);
+            } else if (direction == 'L') {
+                rope.moveHead(-1, 0);
+            } else if (direction == 'U') {
+                rope.moveHead(0, 1);
+            } else {
+                rope.moveHead(0, -1);
+            }
+
+            visitedPoints.add(rope.tail().clone());
+        }
+    }
+
+    return visitedPoints.length;
+}
+

@@ -1,0 +1,229 @@
+module DayFourteen
+
+parseInt(value: string): int {
+    var cur = 0;
+    for (var i = 0; i < value.length; i++) {
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10;
+        cur += int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+split(s: string, sep: string): list<string> {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i += 1) {
+        var matches = true;
+        for (var j = 0; j < sep.length; j++) {
+            if (i + j >= s.length || s[i + j] != sep[j]) {
+                matches = false;
+                break;
+            }
+        }
+
+        if (matches) {
+            i += sep.length - 1;
+            result.push(cur);
+            cur = "";
+        } else {
+            cur += string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+min(first: int, second: int): int {
+    if (first > second) {
+        return second;
+    }
+
+    return first;
+}
+
+max(first: int, second: int): int {
+    if (first > second) {
+        return first;
+    }
+
+    return second;
+}
+
+model Point {
+    x: int;
+    y: int;
+
+    @==(other) {
+        return x == other.x && y == other.y;
+    }
+
+    @hash() {
+        return hash([x, y]);
+    }
+}
+
+parseRockFormation(line: string): RockFormation {
+    var rockFormation = RockFormation{points: make(list<Point>)};
+    for (var pointStr in split(line, " -> ")) {
+        var splitPointStr = split(pointStr, ",");
+        rockFormation.points.push(Point{
+            x: parseInt(splitPointStr[0]),
+            y: parseInt(splitPointStr[1])
+        });
+    }
+
+    return rockFormation;
+}
+
+model RockFormation {
+    points: list<Point>;
+}
+
+const minInt = -9223372036854775808;
+const maxInt = 9223372036854775807;
+
+const air = '.';
+const rock = '#';
+const sand = '+';
+
+reservoirFromRockFormations(rockFormations: list<RockFormation>): Reservoir {
+    var minX = maxInt;
+    var maxX = minInt;
+    var maxY = minInt;
+    for (var rockFormation in rockFormations) {
+        for (var point in rockFormation.points) {
+            minX = min(minX, point.x);
+            maxX = max(maxX, point.x);
+            maxY = max(maxY, point.y);
+        }
+    }
+
+    var height = maxY + 2;
+    var xOffset = minX - 1 - height;
+    var width = (maxX - minX) + 3 + 2 * height;
+
+    var scan = make(list<list<rune>>);
+    for (var y = 0; y < height; y++) {
+        var curLine = make(list<rune>);
+        for (var x = 0; x < width; x++) {
+            curLine.push(air);
+        }
+        scan.push(curLine);
+    }
+
+    var reservoir = Reservoir{
+        xOffset: xOffset,
+        width: width,
+        height: height,
+        scan: scan
+    };
+
+    for (var rockFormation in rockFormations) {
+        for (var i = 1; i < rockFormation.points.length; i++) {
+            reservoir.placeRocks(rockFormation.points[i - 1], rockFormation.points[i]);
+        }
+    }
+
+    return reservoir;
+}
+
+model Reservoir {
+    xOffset: int;
+
+    width: int;
+    height: int;
+
+    scan: list<list<rune>>;
+
+    placeRocks(start: Point, end: Point): void {
+        if (start.x == end.x) {
+            var startY = min(start.y, end.y);
+            var endY = max(start.y, end.y);
+
+            for (var y = startY; y <= endY; y++) {
+                scan[y][start.x - xOffset] = rock;
+            }
+        } else {
+            var startX = min(start.x, end.x);
+            var endX = max(start.x, end.x);
+
+            for (var x = startX; x <= endX; x++) {
+                scan[start.y][x - xOffset] = rock;
+            }
+        }
+    }
+
+    dropSand(x: int): bool {
+        var curX = x - xOffset;
+        var curY = 0;
+
+        for (true) {
+            if (curY == height - 1) {
+                scan[curY][curX] = sand;
+                return false;
+            }
+
+            if (scan[curY + 1][curX] == air) {
+                curY++;
+            } else if (scan[curY + 1][curX - 1] == air) {
+                curX--;
+                curY++;
+            } else if (scan[curY + 1][curX + 1] == air) {
+                curX++;
+                curY++;
+            } else {
+                scan[curY][curX] = sand;
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    getBlock(x: int, y: int): rune {
+        return scan[y][x - xOffset];
+    }
+}
+
+partOne(lines: list<string>): int {
+    var rockFormations = make(list<RockFormation>);
+    for (var line in lines) {
+        rockFormations.push(parseRockFormation(line));
+    }
+
+    var reservoir = reservoirFromRockFormations(rockFormations);
+
+    var count = 0;
+    for (reservoir.dropSand(500)) {
+        count++;
+    }
+
+    return count;
+}
+
+partTwo(lines: list<string>): int {
+    var rockFormations = make(list<RockFormation>);
+    for (var line in lines) {
+        rockFormations.push(parseRockFormation(line));
+    }
+
+    var reservoir = reservoirFromRockFormations(rockFormations);
+
+    var count int;
+    for (count = 0; reservoir.getBlock(500, 0) != sand; reservoir.dropSand(500)) {
+        count++;
+    }
+
+    return count;
+}
+

@@ -2,7 +2,7 @@ module DayFour
 
 parseInt(value: string): int {
     var cur = 0;
-    for (var i = 0; i < value.length; i += 1) {
+    for (var i = 0; i < value.length; i++) {
         if (value[i] < '0' || value[i] > '9') {
             return 0;
         }

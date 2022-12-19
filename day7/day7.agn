@@ -1,0 +1,227 @@
+module DaySeven
+
+parseInt(value: string): int {
+    var cur = 0;
+    for (var i = 0; i < value.length; i += 1) {
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10;
+        cur += int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+split(s: string, sep: rune): list<string> {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i += 1) {
+        if (s[i] == sep) {
+            result.push(cur);
+            cur = "";
+        } else {
+            cur += string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+subString(str: string, start: int, end: int): string {
+    var result = "";
+    for (var i = start; i < end && i < str.length; i++) {
+        result += string(str[i]);
+    }
+    return result;
+}
+
+newDir(name: string, parent: Node): Node {
+    var node = new Node();
+    node.name = name;
+    node.parent = parent;
+    node.isDir = true;
+    node.children = make(list<Node>);
+    return node;
+}
+
+newFile(name: string, parent: Node, size: int): Node {
+    var node = new Node();
+    node.name = name;
+    node.parent = parent;
+    node.isDir = false;
+    node.size = size;
+    return node;
+}
+
+model Node {
+    name: string;
+    parent: Node;
+    isDir: bool;
+    size: int;
+    children: list<Node>;
+
+    totalSize(): int {
+        if (isDir) {
+            var total = 0;
+            for (var node in children) {
+                total += node.totalSize();
+            }
+            return total;
+        }
+
+        return size;
+    }
+
+    getChild(name: string): Node {
+        for (var child in children) {
+            if (child.name == name) {
+                return child;
+            }
+        }
+
+        return null;
+    }
+
+    dirsSmallerThan(target: int): list<Node> {
+        if (!isDir) {
+            return make(list<Node>);
+        }
+
+        var dirs = make(list<Node>);
+
+        if (totalSize() < target) {
+            dirs.push(self);
+        }
+
+        for (var child in children) {
+            for (var node in child.dirsSmallerThan(target)) {
+                dirs.push(node);
+            }
+        }
+        return dirs;
+    }
+
+    findSmallestDirBiggerThan(target: int): Node {
+        if (!isDir) {
+            return null;
+        }
+
+        var node Node;
+        if (totalSize() > target) {
+            node = self;
+        }
+
+        for (var child in children) {
+            var childResult = child.findSmallestDirBiggerThan(target);
+            if (childResult != null && childResult.totalSize() < node.totalSize()) {
+                node = childResult;
+            }
+        }
+
+        return node;
+    }
+}
+
+newCommand(cmd: string): Command {
+    var command = new Command();
+    command.cmd = subString(cmd, 2, cmd.length);
+    command.output = make(list<string>);
+    return command;
+}
+
+model Command {
+    cmd: string;
+    output: list<string>;
+}
+
+splitIntoCommands(lines: list<string>): list<Command> {
+    var commands = make(list<Command>);
+
+    var curCommand = newCommand(lines[0]);
+    for (var i = 1; i < lines.length; i++) {
+        var line = lines[i];
+
+        if (line[0] == '$') {
+            commands.push(curCommand);
+            curCommand = newCommand(line);
+        } else {
+            curCommand.output.push(line);
+        }
+    }
+
+    return commands;
+}
+
+partOne(lines: list<string>): int {
+    var commands = splitIntoCommands(lines);
+
+    var rootNode = newDir("/", null);
+    var curNode = rootNode;
+
+    for (var command in commands) {
+        if (command.cmd == "ls") {
+            for (var line in command.output) {
+                var splitLine = split(line, ' ');
+                if (subString(line, 0, 3) == "dir") {
+                    curNode.children.push(newDir(splitLine[1], curNode));
+                } else {
+                    curNode.children.push(newFile(splitLine[1], curNode, parseInt(splitLine[0])));
+                }
+            }
+        } else {
+            var parts = split(command.cmd, ' ');
+            if (parts[1] == "..") {
+                curNode = curNode.parent;
+            } else if (parts[1] == "/") {
+                curNode = rootNode;
+            } else {
+                curNode = curNode.getChild(parts[1]);
+            }
+        }
+    }
+
+    var sum = 0;
+    for (var node in rootNode.dirsSmallerThan(100001)) {
+        sum += node.totalSize();
+    }
+    return sum;
+}
+
+partTwo(lines: list<string>): int {
+    var commands = splitIntoCommands(lines);
+
+    var rootNode = newDir("/", null);
+    var curNode = rootNode;
+
+    for (var command in commands) {
+        if (command.cmd == "ls") {
+            for (var line in command.output) {
+                var splitLine = split(line, ' ');
+                if (subString(line, 0, 3) == "dir") {
+                    curNode.children.push(newDir(splitLine[1], curNode));
+                } else {
+                    curNode.children.push(newFile(splitLine[1], curNode, parseInt(splitLine[0])));
+                }
+            }
+        } else {
+            var parts = split(command.cmd, ' ');
+            if (parts[1] == "..") {
+                curNode = curNode.parent;
+            } else if (parts[1] == "/") {
+                curNode = rootNode;
+            } else {
+                curNode = curNode.getChild(parts[1]);
+            }
+        }
+    }
+
+    var target = rootNode.totalSize() - 40000000;
+    return rootNode.findSmallestDirBiggerThan(target).totalSize();
+}

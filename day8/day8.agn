@@ -1,0 +1,80 @@
+module DayEight
+
+parseGrid(lines: list<string>): list<list<int>> {
+    var grid = make(list<list<int>>);
+    for (var y = 0; i < lines.length; y++) {
+        var line = lines[y];
+
+        var row = make(list<int>);
+        for (var x = 0; x < line.length; x++) {
+            row.push(line[x] - '0');
+        }
+
+        grid.push(row);
+    }
+
+    return grid;
+}
+
+isVisible(grid: list<list<int>>, startX: int, startY: int): bool {
+    var max = grid[startY][startX];
+
+    var visible bool;
+
+    visible = true;
+    for (var x = startX - 1; x >= 0; x--) {
+        if (grid[startY][x] >= level) {
+            visible = false;
+        }
+    }
+    if (visible) {
+        return true;
+    }
+
+    visible = true;
+    for (var x = startX - 1; x < grid[0].length; x++) {
+        if (grid[startY][x] >= level) {
+            visible = false;
+        }
+    }
+    if (visible) {
+        return true;
+    }
+
+    visible = true;
+    for (var y = startY - 1; y >= 0; y--) {
+        if (grid[y][startX] >= level) {
+            visible = false;
+        }
+    }
+    if (visible) {
+        return true;
+    }
+
+    visible = true;
+    for (var y = startY + 1; y < grid.length; y++) {
+        if (grid[y][startX] >= level) {
+            visible = false;
+        }
+    }
+    if (visible) {
+        return true;
+    }
+
+    return false;
+}
+
+partOne(lines: list<string>): int {
+    var grid = parseGrid(lines);
+
+    var count = 0;
+    for (var y = 0; y < grid.length; y++) {
+        for (var x = 0; x < grid[y].length; x++) {
+            if (isVisible(grid, x, y)) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}

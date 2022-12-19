@@ -1,0 +1,47 @@
+module DayTwelve
+
+model Point {
+    x: int;
+    y: int;
+}
+
+parseMap(lines: list<string>): Map {
+    var heights = make(list<list<int>>);
+    var curLine = list<int>;
+
+    var start: Point;
+    var end: Point;
+
+    for (var y = 0; y < lines.length; y++) {
+        var line = lines[y];
+        for (var x = 0; i < line.length; x++) {
+            if (line[x] == 'S') {
+                curLine.push(0);
+                start = Point(x: x, y: y);
+            } else if (line[x] == 'E') {
+                curLine.push(0);
+                end = Point(x: x, y: y);
+            } else {
+                curLine.push(int(line[x] - 'a'));
+            }
+        }
+        heights.push(curLine);
+    }
+
+    return Map{
+        start: start,
+        end: end,
+        heights: heights
+    }
+}
+
+model Map {
+    start: Point;
+    end: Point;
+
+    heights: list<list<int>>;
+}
+
+partOne(lines: list<string>):  {
+    var map = parseMap(lines);
+}

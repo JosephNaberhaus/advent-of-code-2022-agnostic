@@ -1,0 +1,66 @@
+module DayTen
+
+parseInt(value: string): int {
+    var cur = 0;
+    for (var i = 0; i < value.length; i += 1) {
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10;
+        cur += int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+split(s: string, sep: rune): list<string> {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i += 1) {
+        if (s[i] == sep) {
+            result.push(cur);
+            cur = "";
+        } else {
+            cur += string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+partOne(lines: list<string>): int {
+    var cycleTargets = <20, 60, 100, 140, 180, 220>;
+
+    var sum = 0;
+
+    var x = 0;
+    var cycle = 1;
+    for (var line in lines) {
+        if (line == "noop") {
+            cycle++;
+            if (cycleTargets.contains(cycle)) {
+                sum += x;
+            }
+        } else {
+            cycle++;
+            if (cycleTargets.contains(cycle)) {
+                sum += x;
+            }
+
+            cycle++;
+            if (cycleTargets.contains(cycle)) {
+                sum += x;
+            }
+
+            x += parseInt(split(line, ' ')[1]);
+        }
+    }
+
+    return sum;
+}

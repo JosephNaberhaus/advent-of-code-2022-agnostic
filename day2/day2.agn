@@ -41,7 +41,7 @@ getScore(theirMove: int, myMove: int): int {
 partOne(lines: list<string>): int {
     var score = 0;
     for (var line in lines) {
-        var theirMove = theirMoveToMove[int(line[0])];
+        var theirMove = theirMoveToMove[line[0]];
         var myMove = myMoveToMove[int(line[2])];
 
         score += getScore(theirMove, myMove);

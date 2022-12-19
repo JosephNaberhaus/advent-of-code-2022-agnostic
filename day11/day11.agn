@@ -1,0 +1,187 @@
+module DayEleven
+
+parseInt(value: string): int {
+    var cur = 0;
+    var started = false;
+    for (var i = 0; i < value.length; i += 1) {
+        if (!started) {
+            if (value[i] == ' ') {
+                continue;
+            }
+
+            started = true;
+        }
+
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10;
+        cur += int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+split(s: string, sep: rune): list<string> {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i += 1) {
+        if (s[i] == sep) {
+            result.push(cur);
+            cur = "";
+        } else {
+            cur += string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+subString(str: string, start: int, end: int): string {
+    var result = "";
+    for (var i = start; i < end && i < str.length; i++) {
+        result += string(str[i]);
+    }
+    return result;
+}
+
+parseMonkey(lines: list<string>, i: int): Monkey {
+    var monkey = Monkey{
+        items: make(list<int>),
+        inspections: 0,
+        operation: subString(lines[i + 2], 19, lines[i + 2].length),
+        divisor: parseInt(subString(lines[i + 3], 21, lines[i + 3].length)),
+        tMonkey: parseInt(subString(lines[i + 4], 29, lines[i + 4].length)),
+        fMonkey: parseInt(subString(lines[i + 5], 30, lines[i + 5].length))
+    };
+
+    var itemsStr = subString(lines[i + 1], 18, lines[i + 1].length);
+    for (var item in split(itemsStr, ',')) {
+        monkey.items.push(parseInt(item));
+    }
+
+    return monkey;
+}
+
+model Monkey {
+    items: list<int>;
+    inspections: int;
+
+    operation: string;
+    divisor: int;
+    tMonkey: int;
+    fMonkey: int;
+
+    inspect(old: int): int {
+        inspections++;
+
+        var splitOperation = split(operation, ' ');
+
+        var left int;
+        if (splitOperation[0] == "old") {
+            left = old;
+        } else {
+            left = parseInt(splitOperation[0]);
+        }
+
+        var right int;
+        if (splitOperation[2] == "old") {
+            right = old;
+        } else {
+            right = parseInt(splitOperation[2]);
+        }
+
+        if (splitOperation[1] == "*") {
+            return left * right;
+        } else if (splitOperation[1] == "+") {
+            return left + right;
+        }
+
+        return -1;
+    }
+}
+
+partOne(lines: list<string>): int {
+    var monkeys = make(list<Monkey>);
+    for (var i = 0; i < lines.length; i += 7) {
+        monkeys.push(parseMonkey(lines, i));
+    }
+
+    for (var i = 0; i < 20; i++) {
+        for (var monkey in monkeys) {
+            for (monkey.items.length != 0) {
+                var worry = monkey.items.pop();
+                worry = monkey.inspect(worry);
+                worry /= 3;
+
+                if (worry % monkey.divisor == 0) {
+                    monkeys[monkey.tMonkey].items.push(worry);
+                } else {
+                    monkeys[monkey.fMonkey].items.push(worry);
+                }
+            }
+        }
+    }
+
+    var largest = 0;
+    for (var i = 0; i < monkeys.length; i++) {
+        for (var j = 0; j < monkeys.length; j++) {
+            if (i != j) {
+                var monkeyBusiness = monkeys[i].inspections * monkeys[j].inspections;
+                if (monkeyBusiness > largest) {
+                    largest = monkeyBusiness;
+                }
+            }
+        }
+    }
+
+    return largest;
+}
+
+partTwo(lines: list<string>): int {
+    var monkeys = make(list<Monkey>);
+    for (var i = 0; i < lines.length; i += 7) {
+        monkeys.push(parseMonkey(lines, i));
+    }
+
+    var commonMultiple = 1;
+    for (var monkey in monkeys) {
+        commonMultiple *= monkey.divisor;
+    }
+
+    for (var i = 0; i < 10000; i++) {
+        for (var monkey in monkeys) {
+            for (monkey.items.length != 0) {
+                var worry = monkey.items.pop();
+                worry = monkey.inspect(worry);
+                worry %= commonMultiple;
+
+                if (worry % monkey.divisor == 0) {
+                    monkeys[monkey.tMonkey].items.push(worry);
+                } else {
+                    monkeys[monkey.fMonkey].items.push(worry);
+                }
+            }
+        }
+    }
+
+    var largest = 0;
+    for (var i = 0; i < monkeys.length; i++) {
+        for (var j = 0; j < monkeys.length; j++) {
+            if (i != j) {
+                var monkeyBusiness = monkeys[i].inspections * monkeys[j].inspections;
+                if (monkeyBusiness > largest) {
+                    largest = monkeyBusiness;
+                }
+            }
+        }
+    }
+
+    return largest;
+}
