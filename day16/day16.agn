@@ -1,0 +1,261 @@
+module DaySixteen
+
+parseInt(value: string): int {
+    var cur = 0;
+    for (var i = 0; i < value.length; i++) {
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10;
+        cur += int(value[i] - '0');
+    }
+
+    return cur;
+}
+
+split(s: string, sep: rune): list<string> {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i += 1) {
+        if (s[i] == sep) {
+            result.push(cur);
+            cur = "";
+        } else {
+            cur += string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+substring(str: string, start: int, end: int): string {
+    var result = "";
+    for (var i = start; i < end && i < str.length; i++) {
+        result += string(str[i]);
+    }
+    return result;
+}
+
+copySet(toCopy: set<string>): set<string> {
+	var copy = make(set<string>);
+	for (var value in toCopy) {
+		copy.add(value);
+	}
+
+	return copy;
+}
+
+parseValve(line: string): Valve {
+	var splitLine = split(line, ' ');
+
+	var name = splitLine[1];
+	var pressure = parseInt(substring(splitLine[4], 5, splitLine[4].length - 1));
+
+	var tunnels = make(list<string>);
+	for (var i = 9; i < splitLine.length; i++) {
+		var tunnel = splitLine[i];
+		if (i != splitLine.length - 1) {
+			tunnel = substring(tunnel, 0, tunnel.length - 1);
+		}
+
+		tunnels.push(tunnel);
+	}
+
+	return Valve{
+		name: name,
+		pressure: pressure,
+		tunnels: tunnels
+	};
+}
+
+model Valve {
+	name: string;
+	pressure: int;
+	tunnels: list<string>;
+}
+
+getValvesByName(valves: list<Valve>): map<string, Valve> {
+	var valvesByName = make(map<string, Valve>);
+	for (var valve in valves) {
+		valvesByName[valve.name] = valve;
+	}
+
+	return valvesByName;
+}
+
+model State {
+	releasedPressure: int;
+	pressurePerMinute: int;
+
+	openValves: set<string>;
+	location: string;
+	elephantLocation: string;
+	minute: int;
+
+	copy(): State {
+		return State{
+			releasedPressure: releasedPressure,
+			pressurePerMinute: pressurePerMinute,
+			openValves: copySet(openValves),
+			location: location,
+			elephantLocation: elephantLocation,
+			minute: minute
+		};
+	}
+
+	@==(other) {
+		return releasedPressure == other.releasedPressure &&
+			openValves == other.openValves &&
+			location == other.location &&
+			elephantLocation == other.elephantLocation &&
+			minute == other.minute;
+	}
+
+	@hash() {
+		return hash([hash(releasedPressure), hash(openValves), hash(location), hash(elephantLocation), hash(minute)]);
+	}
+}
+
+getNextStates(curState: State, valvesByName: map<string, Valve>): list<State> {
+	var nextStatesForMe = make(list<State>);
+
+	var noopState = curState.copy();
+	noopState.minute++;
+	noopState.releasedPressure += noopState.pressurePerMinute;
+	nextStatesForMe.push(noopState);
+
+	var curValvePressure = valvesByName[curState.location].pressure;
+	if (!curState.openValves.contains(curState.location) && curValvePressure != 0) {
+		var openValveState = curState.copy();
+		openValveState.minute++;
+		openValveState.releasedPressure += openValveState.pressurePerMinute;
+		openValveState.pressurePerMinute += curValvePressure;
+		openValveState.openValves.add(curState.location);
+		nextStatesForMe.push(openValveState);
+	}
+
+	for (var connection in valvesByName[curState.location].tunnels) {
+		var moveState = curState.copy();
+		moveState.minute++;
+		moveState.releasedPressure += moveState.pressurePerMinute;
+		moveState.location = connection;
+		nextStatesForMe.push(moveState);
+	}
+
+	var nextStates = make(list<State>);
+	for (var nextStateForMe in nextStatesForMe) {
+    	nextStates.push(nextStateForMe);
+
+		if (valvesByName[curState.elephantLocation] == null) {
+			continue;
+		}
+
+		curValvePressure = valvesByName[curState.elephantLocation].pressure;
+    	if (!curState.openValves.contains(curState.elephantLocation) && curValvePressure != 0) {
+    		var openValveState = nextStateForMe.copy();
+    		openValveState.pressurePerMinute += curValvePressure;
+    		openValveState.openValves.add(curState.location);
+    		nextStates.push(openValveState);
+    	}
+
+    	for (var connection in valvesByName[curState.elephantLocation].tunnels) {
+    		var moveState = nextStateForMe.copy();
+    		moveState.elephantLocation = connection;
+    		nextStates.push(moveState);
+    	}
+	}
+
+	return nextStates;
+}
+
+partOne(lines: list<string>): int {
+	var valves = make(list<Valve>);
+	for (var line in lines) {
+		valves.push(parseValve(line));
+	}
+
+	var valvesByName = getValvesByName(valves);
+
+	var maxPressure = 0;
+
+	var curToVisitStates = <State{
+		releasedPressure: 0,
+		pressurePerMinute: 0,
+		openValves: make(set<string>),
+		location: "AA",
+		elephantLocation: "nowhere",
+		minute: 0
+	}>;
+	var nextToVisitStates = make(set<State>);
+	for (curToVisitStates.length > 0) {
+		for (var cur in curToVisitStates) {
+			if (cur.releasedPressure > maxPressure) {
+				maxPressure = cur.releasedPressure;
+			}
+
+			if (cur.minute >= 30) {
+				continue;
+			}
+
+			for (var nextState in getNextStates(cur, valvesByName)) {
+				if (maxPressure - nextState.releasedPressure < 100) {
+					nextToVisitStates.add(nextState);
+				}
+			}
+		}
+
+		curToVisitStates = nextToVisitStates;
+		nextToVisitStates = make(set<State>);
+	}
+
+	return maxPressure;
+}
+
+partTwo(lines: list<string>): int {
+	var valves = make(list<Valve>);
+	for (var line in lines) {
+		valves.push(parseValve(line));
+	}
+
+	var valvesByName = getValvesByName(valves);
+
+	var maxPressure = 0;
+
+	var curToVisitStates = <State{
+		releasedPressure: 0,
+		pressurePerMinute: 0,
+		openValves: make(set<string>),
+		location: "AA",
+		elephantLocation: "AA",
+		minute: 0
+	}>;
+	var nextToVisitStates = make(set<State>);
+	for (curToVisitStates.length > 0) {
+		for (var cur in curToVisitStates) {
+			if (cur.releasedPressure > maxPressure) {
+				maxPressure = cur.releasedPressure;
+			}
+
+			if (cur.minute >= 26) {
+				continue;
+			}
+
+			for (var nextState in getNextStates(cur, valvesByName)) {
+				if (maxPressure - nextState.releasedPressure < 100) {
+					nextToVisitStates.add(nextState);
+				}
+			}
+		}
+
+		curToVisitStates = nextToVisitStates;
+		nextToVisitStates = make(set<State>);
+	}
+
+	return maxPressure;
+}

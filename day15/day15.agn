@@ -1,0 +1,211 @@
+module DayFifteen
+
+const minInt = -9223372036854775808;
+const maxInt = 9223372036854775807;
+
+parseInt(value: string): int {
+    var cur = 0;
+    var sign = 1;
+    for (var i = 0; i < value.length; i++) {
+        if (i == 0 && value[i] == '-') {
+        	sign = -1;
+        	continue;
+        }
+
+        if (value[i] < '0' || value[i] > '9') {
+            return 0;
+        }
+
+        cur *= 10;
+        cur += int(value[i] - '0');
+    }
+
+    return sign * cur;
+}
+
+abs(value: int): int {
+	if (value < 0) {
+		return -1 * value;
+	}
+
+	return value;
+}
+
+min(first: int, second: int): int {
+    if (first > second) {
+        return second;
+    }
+
+    return first;
+}
+
+max(first: int, second: int): int {
+    if (first > second) {
+        return first;
+    }
+
+    return second;
+}
+
+split(s: string, sep: rune): list<string> {
+    var result = make(list<string>);
+
+    var cur = "";
+    for (var i = 0; i < s.length; i += 1) {
+        if (s[i] == sep) {
+            result.push(cur);
+            cur = "";
+        } else {
+            cur += string(s[i]);
+        }
+    }
+
+    if (cur.length != 0) {
+        result.push(cur);
+    }
+
+    return result;
+}
+
+substring(str: string, start: int, end: int): string {
+    var result = "";
+    for (var i = start; i < end && i < str.length; i++) {
+        result += string(str[i]);
+    }
+    return result;
+}
+
+model Point {
+	x: int;
+	y: int;
+
+	manhattanDistance(other: Point): int {
+		return abs(x - other.x) + abs(y - other.y);
+	}
+
+	@==(other) {
+		return x == other.x && y == other.y;
+	}
+
+	@hash() {
+		return hash([x, y]);
+	}
+}
+
+parseSensor(line: string): Sensor {
+	var splitLine = split(line, ' ');
+
+	var posX = parseInt(substring(splitLine[2], 2, splitLine[2].length - 1));
+	var posY = parseInt(substring(splitLine[3], 2, splitLine[3].length - 1));
+	var closestX = parseInt(substring(splitLine[8], 2, splitLine[8].length - 1));
+	var closestY = parseInt(substring(splitLine[9], 2, splitLine[9].length - 0));
+
+	return Sensor{
+		pos: Point{x: posX, y: posY},
+		closest: Point{x: closestX, y: closestY}
+	};
+}
+
+model Sensor {
+	pos: Point;
+	closest: Point;
+
+	distance(): int {
+		return pos.manhattanDistance(closest);
+	}
+
+	contains(p: Point): bool {
+		return pos.manhattanDistance(p) <= distance();
+	}
+
+	getCoveredPointsInRange(minX: int, minY: int, maxX: int, maxY: int): set<Point> {
+		var startX = max(minX, pos.x - distance());
+		var startY = max(minY, pos.y - distance());
+		var endX = min(maxX, pos.x + distance());
+		var endY = min(maxY, pos.y + distance());
+
+		var covered = make(set<Point>);
+		for (var y = startY; y <= endY; y++) {
+			for (var x = startX; x <= endX; x++) {
+				var cur = Point{x: x, y: y};
+				if (pos.manhattanDistance(cur) > distance()) {
+					continue;
+				}
+
+				covered.add(cur);
+			}
+		}
+
+		return covered;
+	}
+}
+
+addAll(target: set<Point>, toAdd: set<Point>): void {
+	for (var value in toAdd) {
+		target.add(value);
+	}
+}
+
+subtract(left: set<Point>, right: set<Point>): set<Point> {
+	var result = make(set<Point>);
+	for (var value in left) {
+		if (!right.contains(value)) {
+			result.add(value);
+		}
+	}
+
+	return result;
+}
+
+partOne(lines: list<string>): int {
+	var coveredPoints = make(set<Point>);
+	var sensorAndBeaconPoints = make(set<Point>);
+	for (var line in lines) {
+		var sensor = parseSensor(line);
+		addAll(coveredPoints, sensor.getCoveredPointsInRange(minInt, 2000000, maxInt, 2000000));
+		sensorAndBeaconPoints.add(sensor.pos);
+		sensorAndBeaconPoints.add(sensor.closest);
+	}
+
+	return subtract(coveredPoints, sensorAndBeaconPoints).length;
+}
+
+partTwo(lines: list<string>): int {
+	var sensors = make(list<Sensor>);
+	for (var line in lines) {
+		sensors.push(parseSensor(line));
+	}
+
+	var potentials = make(set<Point>);
+	for (var sensor in sensors) {
+		var searchDistance = sensor.distance() + 1;
+		for (var yOffset = -1 * searchDistance; yOffset <= searchDistance; yOffset++) {
+			var xOffset = searchDistance - abs(yOffset);
+			var left = Point{x: sensor.pos.x + xOffset, y: sensor.pos.y + yOffset};
+			var right = Point{x: sensor.pos.x - xOffset, y: sensor.pos.y + yOffset};
+
+			potentials.add(left);
+			potentials.add(right);
+		}
+	}
+
+	for (var p in potentials) {
+		if (p.x < 0 || p.x >= 4000000 || p.y < 0 || p.y >= 4000000) {
+			break;
+		}
+
+		var contained = false;
+		for (var sensor in sensors) {
+			if (sensor.contains(p)) {
+				contained = true;
+				break;
+			}
+		}
+
+		if (!contained) {
+			return p.x * 4000000 + p.y;
+		}
+	}
+
+	return -1;
+}
